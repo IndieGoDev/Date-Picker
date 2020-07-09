@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Kalender</title>
+	<meta charset="utf-8">
+	<style>
+		#kalender{
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 200px;
+			height: 200px;
+			border: 1px DeepSkyBlue solid;
+			box-shadow: 0 0 2px 0 DeepSkyBlue;
+			font-family: 'Segoe UI';
+			font-size: 11px;
+			color:black;
+			text-align: center;
+			cursor: default;
+			transform: scale(0, 0);
+			opacity: 0;
+			overflow: hidden;
+		}
+		#kalender > table{
+			width: 100%;
+			height: 100%;
+		}
+		#kalender > table > thead{
+			position: absolute;
+			top:0;
+			left: 0;
+			background: DeepSkyBlue;
+			font-size: 11px;
+			z-index: 300;
+		}
+		#kalender > table > thead > tr > td{
+			width: 188px;
+			transition: .2s;
+		}
+		#kalender > table > thead > tr > td:hover{
+			background: white;
+			border-radius: 15px;
+		}
+		#kalender > table > thead > tr > td[disabled]:hover{
+			background: #F56;
+			color: white;
+		}
+		#kalender > table > thead > tr > td:first-child,
+		#kalender > table > thead > tr > td:last-child{
+			width: 21px;
+			font-family: 'Segoe MDL2 Assets';
+			font-weight: bold;
+		}
+		#kalender > table > thead > tr > td:last-child::before{
+			content : '\E00F';
+		}
+		#kalender > table > thead > tr > td:first-child::before{
+			content : '\E00E';
+		}
+		#kalender > table > tbody{
+			position: absolute;
+			top:21px;
+			left: 0;
+			background: rgba(255,255,255,.5);
+			transition: opacity .2s, transform .4s;
+		}
+		#kalender > table > tbody > tr > td{
+			background: transparent;
+			transition: background .2s, border-radius .3s;
+		}
+		#kalender > table > #harian > tr > td{
+			width: 25px;
+			height: 21.3px;
+		}
+		#kalender > table > #bulanan > tr > td{
+			width: 66px;
+			height: 40.3px;
+		}
+		#kalender > table > #tahunan > tr > td{
+			width: 50px;
+			height: 31.4px;
+		}
+		#kalender > table > #harian > tr > td:first-child{
+			color: red;
+		}
+		#kalender > table > tbody > tr > td:hover,
+		#kalender > table > tbody > tr > td[aktif]{
+			background: DeepSkyBlue;
+			border-radius:15px;
+		}
+		#kalender > table > tbody > tr > td[disabled]{
+			background: #AAA;
+			color: white;
+		}
+		#kalender > table > tbody > tr > td[disabled]:hover{
+			background: #F56;
+			color: white;
+			border-radius:15px;
+		}
+		.pilihTanggal{
+			position: relative;
+			margin: 50px 250px 250px 50px;
+			height: 25px;
+			width: 100px;
+			background: #F56;
+			color: white;
+			border-radius:5px;
+			text-align: center;
+			font-size: 11px;
+			border:none;
+		}
+	</style>
+	<script>
+		onload = function() {
+			var kalender = document.body.querySelector('#kalender'),
+			konten = document.body.querySelector('#konten'),
+			tombol1 = konten.querySelector('#tombol1'),
+			tombol2 = konten.querySelector('#tombol2'),
+			tombol3 = konten.querySelector('#tombol3'),
+			tombol4 = konten.querySelector('#tombol4'),
+			tombol5 = konten.querySelector('#tombol5'),
+			tombol6 = konten.querySelector('#tombol6'),
+			tombol7 = konten.querySelector('#tombol7'),
+			tombol8 = konten.querySelector('#tombol8'),
+			tombol9 = konten.querySelector('#tombol9'),
+			UA = navigator.userAgent;
+			if (UA.indexOf('Firefox') != -1) {
+				kalender.style.transition = 'opacity .4s, transform .4s';
+			} else if (UA.indexOf('Chrome') != -1) {
+				kalender.style.transition = 'opacity .4s';
+			};
+			onclick = function(e) {
+				if (e.target.parentNode.className != 'kalender' && e.target.getAttribute('type', 'button') == null) {
+					kalenderHilang();
+				} else {
+					if (e.target.getAttribute('type', 'button') != null) {
+						kalenderTampil(e);
+					};
+					if(kalender.style.opacity == 1 && UA.indexOf('Chrome') != -1) {
+						kalender.style.transition = 'opacity .4s, transform .4s';
+					}
+				}
+			};
+			function kalenderHilang(){
+				kalender.style.opacity = 0;
+				konten.style.filter = 'blur(0)';
+				if (UA.indexOf('Chrome') != -1) {
+					kalender.style.transition = 'opacity .4s';
+					setTimeout(function(){
+						kalender.style.transform = 'scale(0,0)';
+					},400)
+				} else {
+					kalender.style.transform = 'scale(0,0)';
+				}
+			};
+			function kalenderTampil(e) {
+				kalender.style.opacity = 1;
+				kalender.style.transform = 'scale(1, 1)';
+				konten.style.filter = 'blur(3px)';
+				var x = e.clientX, y = e.clientY, w = kalender.clientWidth, h = kalender.clientHeight;
+				if (x <= 100 && y <= 100) {
+					kalender.style.transform = 'translate('+x+'px, '+y+'px)';
+				} else if (x <= 100 && y > 100 && y <= innerHeight-100) {
+					kalender.style.transform = 'translate('+x+'px, '+(y-(h*.5))+'px)';
+				} else if (x <= 100 && y > innerHeight-100) {
+					kalender.style.transform = 'translate('+x+'px, '+(y-h)+'px)';
+				} else if (x > 100 && x <= innerWidth-100 && y <= 100) {
+					kalender.style.transform = 'translate('+(x-(w*.5))+'px, '+y+'px)';
+				} else if (x > 100 && x <= innerWidth-100 && y > 100 && y <= innerHeight-100) {
+					kalender.style.transform = 'translate('+(x-(w*.5))+'px, '+(y-(h*.5))+'px)';
+				} else if (x > 100 && x <= innerWidth-100 && y > innerHeight-100) {
+					kalender.style.transform = 'translate('+(x-(w*.5))+'px, '+(y-h)+'px)';
+				} else if (x > innerWidth-100 && y <= 100) {
+					kalender.style.transform = 'translate('+(x-w)+'px, '+y+'px)';
+				} else if (x > innerWidth-100 && y > 100 && y <= innerHeight-100) {
+					kalender.style.transform = 'translate('+(x-w)+'px, '+(y-(h*.5))+'px)';
+				} else if (x > innerWidth-100 && y > innerHeight-100) {
+					kalender.style.transform = 'translate('+(x-w)+'px, '+(y-h)+'px)';
+				};
+				Kalender(e)
+			}
+			function Kalender(e) {
+				var head = kalender.querySelector("#head"),
+				mundur = kalender.querySelector("#mundur"),
+				maju = kalender.querySelector("#maju"),
+				harian = kalender.querySelector("#harian"),
+				bulanan = kalender.querySelector("#bulanan"),
+				tahunan = kalender.querySelector("#tahunan"),
+				jumlahHari = [31,29,31,30,31,30,31,31,30,31,30,31],
+				namaHari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jum\'at','Sabtu'],
+				namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],
+				hari = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'],
+				bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'],
+				tanggal = [0,0,0,0,0,0,0,0,0,0,0,0],
+				tgl = new Date(),
+				hariIni = tgl.getDate(),
+				bulanIni = tgl.getMonth(),
+				tahunIni = tgl.getFullYear(),
+				value = e.target.value.split('-'),
+				thn = parseInt(value[0]),
+				bln = parseInt(value[1]),
+				hr = parseInt(value[2]),
+				kabisat = value.length==3&&thn!=0&&bln!=0&&bln<=12&&hr!=0?hr<=jumlahHari[bln-1]?thn%4==0&&bln==2?1:bln==2?hr>28?null:0:0:null:null;
+				kabisat==null?value=[tahunIni,bulanIni+1,hariIni]:value=[thn,bln,hr];
+				function kalenderUbah() {
+					jumlahHari[1]=value[0]%4!=0?28:29;
+					tanggal[0]=((365*(value[0]-1))+Math.floor((value[0]-1)/4))%7;
+					for(var i=0;i<tanggal.length;i++)if(i!=0)tanggal[i]=(tanggal[i-1]+jumlahHari[i-1])%7;
+					if (head.getAttribute('mode') == 'hari') {
+						for(var i=0;i<hari.length;i++)harian.children[0].children[i].textContent=hari[i];
+						for (var i=1,ii=1,iii=0,iv=tanggal[value[1]-1],v=1,vi=1;i<=42;i++) {
+							if (iii>6) {
+								iii = 0;
+								if(ii<6)ii++;
+							};
+							if(i<=iv){
+								harian.children[ii].children[iii].setAttribute('disabled',0);
+								harian.children[ii].children[iii].removeAttribute('aktif');
+								harian.children[ii].children[iii].textContent=(!isNaN(jumlahHari[value[1]-2])?jumlahHari[value[1]-2]:jumlahHari[11])-(iv-i);
+								harian.children[ii].children[iii].onclick = null;
+							}else if(i>iv){
+								if (v<=jumlahHari[value[1]-1]) {
+									harian.children[ii].children[iii].textContent=v;
+									if (((value[0]*1000)+(value[1]*100)+(i-iv)) > ((tahunIni*1000)+((bulanIni+1)*100)+hariIni)) {
+										harian.children[ii].children[iii].setAttribute('disabled',0);
+										harian.children[ii].children[iii].removeAttribute('aktif');
+										harian.children[ii].children[iii].onclick = null;
+									} else {
+										harian.children[ii].children[iii].removeAttribute('disabled');
+										harian.children[ii].children[iii].onclick = function(){
+											kalenderHilang();
+											value[2] = parseInt(this.textContent);
+											var hasilBln = value[1]<10?'0'+value[1]:value[1],
+											hasilHr = value[2]<10?'0'+value[2]:value[2];
+											e.target.value = value[0]+'-'+hasilBln+'-'+hasilHr;
+										}
+										if(v==value[2]) {
+											harian.children[ii].children[iii].setAttribute('aktif',0);
+										} else {
+											harian.children[ii].children[iii].removeAttribute('aktif');
+										}
+									}
+								} else {
+									harian.children[ii].children[iii].setAttribute('disabled',0);
+									harian.children[ii].children[iii].removeAttribute('aktif');
+									harian.children[ii].children[iii].textContent=vi++;
+								};
+								v++
+							};
+							iii++
+						}
+					} else if (head.getAttribute('mode') == 'bulan') {
+						for (var i=0,ii=0,iii=0;i<12;i++) {
+							if (iii>2) {
+								iii = 0;
+								if(ii<4)ii++;
+							};
+							bulanan.children[ii].children[iii].setAttribute('value',i);
+							bulanan.children[ii].children[iii].textContent=bulan[i];
+							if (((value[0]*100)+i+1) > ((tahunIni*100)+(bulanIni+1))) {
+								bulanan.children[ii].children[iii].setAttribute('disabled',0);
+								bulanan.children[ii].children[iii].removeAttribute('aktif');
+								bulanan.children[ii].children[iii].onclick = null;
+							} else {
+								bulanan.children[ii].children[iii].removeAttribute('disabled');
+								if(value[1]==i+1){
+									bulanan.children[ii].children[iii].setAttribute('aktif',0);
+								} else {
+									bulanan.children[ii].children[iii].removeAttribute('aktif');
+								};
+								bulanan.children[ii].children[iii].onclick = function(){
+									head.setAttribute('mode', 'hari');
+									value[1] = parseInt(this.getAttribute('value'))+1;
+									kalenderMode();
+								}
+							};
+							iii++
+						}
+					} else if (head.getAttribute('mode') == 'tahun') {
+						var tahun = head.textContent.split(' - ');
+						tahun[0] = parseInt(tahun[0]);
+						tahun[1] = parseInt(tahun[1]);
+						for (var i=0,ii=0,iii=0;i<20;i++) {
+							if (iii>3) {
+								iii = 0;
+								if(ii<5)ii++;
+							};
+							tahunan.children[ii].children[iii].textContent=tahun[0]+i;
+							if (tahun[0]+i > tahunIni) {
+								tahunan.children[ii].children[iii].setAttribute('disabled',0);
+								tahunan.children[ii].children[iii].removeAttribute('aktif');
+								tahunan.children[ii].children[iii].onclick = null;
+							} else {
+								tahunan.children[ii].children[iii].removeAttribute('disabled');
+								if(value[0]==tahun[0]+i){
+									tahunan.children[ii].children[iii].setAttribute('aktif',0);
+								} else {
+									tahunan.children[ii].children[iii].removeAttribute('aktif');
+								};
+								tahunan.children[ii].children[iii].onclick = function(){
+									head.setAttribute('mode', 'bulan');
+									value[0] = parseInt(this.textContent);
+									kalenderMode();
+								}
+							};
+							iii++
+						}
+					}
+				};
+				mundur.onclick = function(){
+					if (head.getAttribute('mode') == 'hari') {
+						if(value[1]>1){
+							value[1]--;
+						} else {
+							value[1] = 12;
+							value[0]--;
+						};
+						head.textContent = namaBulan[(value[1])-1]+' '+value[0];
+					} else if (head.getAttribute('mode') == 'bulan') {
+						if(value[0]>1)value[0]--;
+						head.textContent = value[0];
+					} else if (head.getAttribute('mode') == 'tahun') {
+						if(value[0]>20)value[0]-=20;
+						var teks = Math.floor((value[0])/20)*20;
+						head.textContent=teks==value[0]?(teks-19)+' - '+teks:(teks+1)+' - '+(teks+20);
+					};
+					kalenderUbah();
+				};
+				maju.onclick = function(){
+					if (head.getAttribute('mode') == 'hari') {
+						if(value[1]<12){
+							value[1]++;
+						} else {
+							value[1]=1;
+							value[0]++;
+						};
+						head.textContent = namaBulan[(value[1])-1]+' '+value[0];
+					} else if (head.getAttribute('mode') == 'bulan') {
+						if(value[0]<=20000)value[0]++;
+						head.textContent = value[0];
+					} else if (head.getAttribute('mode') == 'tahun') {
+						if(value[0]<=20000)value[0]+=20;
+						var teks = Math.floor((value[0])/20)*20;
+						head.textContent = teks==value[0]?(teks-19)+' - '+teks:(teks+1)+' - '+(teks+20);
+					};
+					kalenderUbah()
+				};
+				function kalenderMode() {
+					if (head.getAttribute('mode') == 'hari') {
+						harian.style.zIndex = '200';
+						harian.style.opacity = '1';
+						harian.style.transform = 'scale(1,1)';
+						bulanan.style.zIndex = '100';
+						bulanan.style.opacity = '0';
+						bulanan.style.transform = 'scale(1.5,1.5)';
+						tahunan.style.zIndex = '100';
+						tahunan.style.opacity = '0';
+						tahunan.style.transform = 'scale(1.5,1.5)';
+						head.textContent = namaBulan[(value[1])-1]+' '+value[0];
+					} else if (head.getAttribute('mode') == 'bulan') {
+						harian.style.zIndex = '100';
+						harian.style.opacity = '0';
+						harian.style.transform = 'scale(.5,.5)';
+						bulanan.style.zIndex = '200';
+						bulanan.style.opacity = '1';
+						bulanan.style.transform = 'scale(1,1)';
+						tahunan.style.zIndex = '100';
+						tahunan.style.opacity = '0';
+						tahunan.style.transform = 'scale(1.5,1.5)';
+						head.textContent = value[0];
+					} else if (head.getAttribute('mode') == 'tahun') {
+						harian.style.zIndex = '100';
+						harian.style.opacity = '0';
+						harian.style.transform = 'scale(.5,.5)';
+						bulanan.style.zIndex = '100';
+						bulanan.style.opacity = '0';
+						bulanan.style.transform = 'scale(.5,.5)';
+						tahunan.style.zIndex = '200';
+						tahunan.style.opacity = '1';
+						tahunan.style.transform = 'scale(1,1)';
+						var teks = Math.floor((value[0])/20)*20;
+						head.textContent = teks==value[0]?(teks-19)+' - '+teks:(teks+1)+' - '+(teks+20);
+					};
+					kalenderUbah()
+				};
+				head.setAttribute('mode', 'hari');
+				kalenderMode();
+				head.onclick = function() {
+					if (this.getAttribute('mode') == 'hari') {
+						this.setAttribute('mode', 'bulan');
+						kalenderMode();
+					} else if (this.getAttribute('mode') == 'bulan') {
+						this.setAttribute('mode', 'tahun');
+						kalenderMode();
+					}
+				}
+			}
+		}
+	</script>
+</head>
+<body id="body">
+<div id="konten">
+	<input id='tombol1' class="pilihTanggal" type="button" name="tanggal" value="Pilih Tanggal"/>
+	<input id='tombol2' class="pilihTanggal" type="button" name="tanggal" value="2017-04-21" />
+	<input id='tombol3' class="pilihTanggal" type="button" name="tanggal" value="1000-01-01" />
+	<input id='tombol4' class="pilihTanggal" type="button" name="tanggal" value="3000-12-09" />
+	<input id='tombol5' class="pilihTanggal" type="button" name="tanggal" value="4000-04-29" />
+	<input id='tombol6' class="pilihTanggal" type="button" name="tanggal" value="3000-12-02" />
+	<input id='tombol7' class="pilihTanggal" type="button" name="tanggal" value="2999-12-08" />
+	<input id='tombol8' class="pilihTanggal" type="button" name="tanggal" value="4001-04-29" />
+	<input id='tombol9' class="pilihTanggal" type="button" name="tanggal" value="Tutup" />	
+</div>
+<div id="kalender" class="kalender">
+	<table class="kalender">
+		<thead class="kalender">
+			<tr class="kalender"><td id="mundur"></td><td id="head" mode="hari">April 2017</td><td id="maju"></td></tr>
+		</thead>
+		<tbody id="harian" class="kalender">
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+		</tbody>
+		<tbody id="bulanan" class="kalender">
+			<tr class="kalender"><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td></tr>
+			<tr class="kalender"><td></td><td></td><td></td></tr>
+		</tbody>
+		<tbody id="tahunan" class="kalender">
+			<tr class="kalender"><td>2001</td><td>2002</td><td>2003</td><td>2004</td></tr>
+			<tr class="kalender"><td>2005</td><td>2006</td><td>2007</td><td>2008</td></tr>
+			<tr class="kalender"><td>2009</td><td>2010</td><td>2011</td><td>2012</td></tr>
+			<tr class="kalender"><td>2013</td><td>2014</td><td>2015</td><td>2016</td></tr>
+			<tr class="kalender"><td>2017</td><td>2018</td><td>2019</td><td>2020</td></tr>
+		</tbody>
+	</table>
+</div>
+</body>
+</html>
